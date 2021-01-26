@@ -1,0 +1,39 @@
+---
+- hosts: all
+  vars:
+    repositories:
+    - { name: bitnami, url: https://charts.bitnami.com/bitnami }
+    - { name: ealenn, url: https://ealenn.github.io/charts }
+  tasks:
+  - name: Add Helm Repositories
+    community.kubernetes.helm_repository:
+      name: "{{ item.name }}"
+      repo_url: "{{ item.url }}"
+    with_items: "{{ repositories }}"
+    tags: [all, repo]
+
+  - name: Install Nginx Ingress Controller
+    community.kubernetes.helm:
+      name: nginx-ingress-controller
+      chart_ref: bitnami/nginx-ingress-controller
+      namespace: ingress
+      create_namespace: yes
+      kubeconfig: "{{ kubeconfig }}"
+      values_files: cluster/values/ingress-nginx.yml
+      wait: yes
+    tags: [all, ingress]
+
+  - name: Create CA Certificate
+    ansible.builtin.shell: kubectl create secret generic placidina-certs --from-file=tls.crt=../certs/server.crt --from-file=tls.key=../certs/server.key --from-file=ca.crt=../certs/ca.crt
+    environment:
+      KUBECONFIG: "{{ kubeconfig }}"
+    tags: [all, certs]
+
+  - name: Install Echo-Server
+    community.kubernetes.helm:
+      name: echo-server
+      chart_ref: ealenn/echo-server
+      namespace: default
+      kubeconfig: "{{ kubeconfig }}"
+      values_files: cluster/values/echo-server.yml
+    tags: [all, echo]

@@ -1,0 +1,19 @@
+config:
+  enable-multi-accept: "false"
+  client-header-buffer-size: 64k
+  http2-max-field-size: 128k
+  keep-alive: "650"
+  keep-alive-requests: "1000"
+  upstream-keepalive-timeout: "650"
+  upstream-keepalive-requests: "1000"
+  server-tokens: "false"
+  hsts-include-subdomains: "false"
+  limit-req-status-code: "429"
+addHeaders:
+  X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff
+  X-XSS-Protection: "1; mode=block"
+service:
+  externalTrafficPolicy: Cluster
+defaultBackend:
+  enabled: false
